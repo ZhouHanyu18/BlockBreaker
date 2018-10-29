@@ -31,7 +31,8 @@ Star star_show5(100, -270, 50, GREEN);
 
 bool bCheat=FALSE;
 bool STOP = TRUE;
-int SPEED = 100;
+int SPEED = 20;
+int Grade = 0;
 int CurrentW=WINDOW_WIDE;
 int CurrentH=WINDOW_HIGN;
 
@@ -40,7 +41,7 @@ void Init()
 	//block.Reset();
 	ball.Reset();
 	bar.Reset();
-	SPEED = 100;
+	SPEED = 20;
 	STOP = TRUE;
 	list.clear();
 	//初始化
@@ -49,7 +50,7 @@ void Init()
 void BuildSharp(int x,int y)
 {
 	
-	int rd = rand()%10;
+	int rd = rand()%14;
 	switch (rd)
 	{
 	case 0:
@@ -134,10 +135,10 @@ void Block::Reset()
 	
 	srand(time(NULL));
 	nBlock = 0;
-	for (int i = 0; i < 200; ++i)
+	for (int i = 0; i < 50; ++i)
 	{
-		int x = rand() % 40;
-		int y = rand() % 20;
+		int x = rand() % nBlockH/2;
+		int y = rand() % nBlockW;
 		if (pBlock[x][y] ==0)
 		{
 			pBlock[x][y] = 1;
@@ -175,10 +176,10 @@ Bar::Bar()
 void Bar::Reset()
 {
 	color = {1,0,1};
-	nLength = WINDOW_WIDE / 5;
+	nLength = WINDOW_WIDE / 3;
 	nBarX = -nLength / 2;
 	nBarY = INITHIGHT;
-	nWide = 2;
+	nWide = 5;
 	nSpeed = 20;
 }
 
@@ -241,7 +242,7 @@ void Bar::Draw()
 	float x1 = (float)nBarX / (float)WINDOW_WIDE * 2;
 	float y1 = (float)nBarY / (float)WINDOW_HIGN * 2;
 	float x2 = (float)(nBarX+nLength) / (float)WINDOW_WIDE * 2;
-	float y2 = (float)(nBarY+nWide) / (float)WINDOW_HIGN * 2;
+	float y2 = (float)(nBarY-nWide) / (float)WINDOW_HIGN * 2;
 	glRectf(x1, y1, x2, y2);
 }
 
@@ -377,12 +378,20 @@ void myDisplay(void)
 		glColor3f(1.0f, 0.0f, 0.0f);
 		glRasterPos2f(-0.99, -0.75);
 		drawString("Notice:");
-
+		
 		glRasterPos2f(-0.95, -0.8);
 		drawString("Start/Stop: S Speed: 1,2,3,4 L<- R:-> Cheat: F1 Restart: R");
 
 		glRasterPos2f(-0.9, -0.9);
 		drawString("");
+
+		glRasterPos2f(-0.94, -0.92);
+		drawString("GRADE: ");
+
+		glRasterPos2f(-0.70, -0.92);
+		char str[10];
+		sprintf_s(str, "%d", Grade);
+		drawString(str);
 
 		glFlush();
 		glutSwapBuffers();
@@ -392,11 +401,11 @@ void Timer()
 {
 	if (STOP)
 		return;
-	star_show1.deg+=5;
-	star_show2.deg+=5;
-	star_show3.deg+=5;
-	star_show4.deg+=5;
-	star_show5.deg+=5;
+	star_show1.deg+=3;
+	star_show2.deg+=2;
+	star_show3.deg+=2;
+	star_show4.deg+=2;
+	star_show5.deg+=3;
 
 	//外挂--->
 	if (bCheat)
@@ -425,8 +434,13 @@ void Timer()
 	}
 	if (ball.GetY() - ball.GetR() <= -WINDOW_HIGN / 2)//下墙
 	{
-		MessageBox(0,L"GameOver",L">_<",0);
+		char str[10];
+		sprintf_s(str, "%d", Grade);
+		string Sout = "很抱歉，您本局得分：";
+		Sout += str;
+		MessageBox(0, Sout.c_str(), ">_<", 0);
 		Init();
+		Grade = 0;
 		myDisplay();
 		return;
 	}
@@ -436,6 +450,7 @@ void Timer()
 		ball.GetY() - ball.GetR()+ball.GetS() >= bar.GetY())
 	{
 		ball.ChangeDirection(PI * 2 - ball.GetDirection());
+		bar.ChangeY(-1);
 	}
 
 
@@ -457,6 +472,7 @@ void Timer()
 			block.pBlock[i][j] = 0;
 			BuildSharp(x,y);
 			block.Decrease();
+			Grade++;
 		}
 
 
@@ -471,6 +487,7 @@ void Timer()
 			block.pBlock[i][j] = 0;
 			BuildSharp(x, y);
 			block.Decrease();
+			Grade++;
 		}
 
 		//球坐标转换，向左遇到砖块
@@ -484,6 +501,7 @@ void Timer()
 			block.pBlock[i][j] = 0;
 			BuildSharp(x, y);
 			block.Decrease();
+			Grade++;
 		}
 
 		//球坐标转换，向右遇到砖块
@@ -497,12 +515,13 @@ void Timer()
 			block.pBlock[i][j] = 0;
 			BuildSharp(x, y);
 			block.Decrease();
+			Grade++;
 		}
 	}
 	
 	for (auto i=list.begin(); i != list.end(); ++i)
 	{
-		(*i)->y -= 2;
+		(*i)->y -= 3;
 		if ((*i)->y < -WINDOW_HIGN / 2*9/10)
 		{
 			list.erase(i);
@@ -517,9 +536,9 @@ void Timer()
 			{
 			case 0:
 				if ((*i)->color == RED)
-					bar.ChangeY(+4);
+					bar.ChangeY(+10);
 				else
-					bar.ChangeY(-4);
+					bar.ChangeY(-10);
 				bar.SetColor((*i)->color);
 				list.erase(i);
 				--i;
@@ -530,7 +549,7 @@ void Timer()
 				if ((*i)->color == RED)
 					ball.ChangeSize(-4);
 				else
-					ball.ChangeSize(+4);
+					ball.ChangeSize(+6);
 				bar.SetColor((*i)->color);
 				list.erase(i);
 				--i;
@@ -540,7 +559,7 @@ void Timer()
 				if ((*i)->color == RED)
 					bar.ChangeLength(-20);
 				else
-					bar.ChangeLength(20);
+					bar.ChangeLength(30);
 				bar.SetColor((*i)->color);
 				list.erase(i);
 				--i;
@@ -555,7 +574,11 @@ void Timer()
 
 	if (block.GetN() <= 0)
 	{
-		MessageBox(0,L"You Win",L"^_^",1);
+		char str[10];
+		sprintf_s(str, "%d", Grade);
+		string Sout = "恭喜过关了，您总共获取分数是：";
+		Sout += str;
+		MessageBox(0, Sout.c_str(), "^_^", 1);
 		Init();
 		block.Reset();
 		myDisplay();
@@ -609,15 +632,17 @@ void Keyboard(unsigned char key, int x, int y)
 {
 	if (key == '1')
 	{
-		SPEED =60;
+		if (SPEED < 2)
+			SPEED = 2;
+		SPEED--;
 	}
 	if (key == '2')
 	{
-		SPEED = 40;
+		SPEED++;
 	}
 	if (key == '3')
 	{
-		SPEED = 10;
+		SPEED = 8;
 	}
 	if (key == '4')
 	{
@@ -633,6 +658,7 @@ void Keyboard(unsigned char key, int x, int y)
 	{
 		block.Reset();
 		list.clear();
+		Grade = 0;
 		myDisplay();
 	}
 }

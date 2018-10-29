@@ -11,13 +11,13 @@ using namespace std;
 
 typedef vector<int> INTCOLOR;
 
-const int WINDOW_WIDE = 400;
+const int WINDOW_WIDE = 500;
 const int WINDOW_HIGN = 600;
 class Block
 {
 private:
 	const int nHigh = 10;
-	const int nWide = 20;
+	const int nWide = 25;
 	int nBlock;
 public:
 	Block();
